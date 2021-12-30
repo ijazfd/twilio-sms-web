@@ -1,21 +1,23 @@
 import axios from "axios";
 import {useAuthentication} from "../context/AuthenticationProvider";
+import {buildCredentials} from "./useGetTwilioAccount";
 
 const useGetTwilioMessages = () => {
 
   const [authentication] = useAuthentication()
 
   const request = async ({phoneNumber}) => {
+    const credentials = buildCredentials(authentication)
     const url = `https://api.twilio.com/2010-04-01/Accounts/${authentication.accountSid}/Messages.json`
     let result = []
        const fromResult = await axios.get(url,
         {
-          auth: { username: authentication.accountSid, password: authentication.authToken },
+          auth: credentials,
           params: {From: phoneNumber}
         })
       const toResult = await axios.get(url,
         {
-          auth: { username: authentication.accountSid, password: authentication.authToken },
+          auth: credentials,
           params: {To: phoneNumber}
         })
       result = result

@@ -1,4 +1,4 @@
-import {useAuthentication} from "../../context/AuthenticationProvider";
+import {AccountInfo, Authentication, AuthenticationType, useAuthentication} from "../../context/AuthenticationProvider";
 import {useState} from "react";
 import useGetTwilioAccount from "../../hook/useGetTwilioAccount";
 import {AccountDetails, AuthenticateForm} from "./AuthenticationPageView";
@@ -10,19 +10,23 @@ const AuthenticationPage = () => {
   const [accountInfo, setAccountInfo] = useState(authentication.accountInfo)
   const [accountSid, setAccountSid] = useState(authentication.accountSid)
   const [authToken, setAuthToken] = useState(authentication.authToken)
+  const [apiKey, setApiKey] = useState(authentication.apiKey)
+  const [apiSecret, setApiSecret] = useState(authentication.apiSecret)
+  const [authType, setAuthType] = useState(AuthenticationType.NONE)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const handleGetAccountsSuccess = (response) => {
-    const info = {
-      name: response.data.friendly_name,
-      type: response.data.type,
-      status: response.data.status,
-      dateCreated: response.data.date_created,
-      dateUpdated: response.data.date_updated,
-    }
+    const info = new AccountInfo(
+      response.data.friendly_name,
+      response.data.type,
+      response.data.status,
+      response.data.date_created,
+      response.data.date_updated,
+    )
     setAccountInfo(info)
-    setAuthentication({accountSid, authToken, accountInfo: info})
+    const auth = new Authentication(accountSid, authToken, apiKey, apiSecret, authType, info)
+    setAuthentication(auth)
   }
 
   const handleGetAccountsComplete = () => {
@@ -33,10 +37,10 @@ const AuthenticationPage = () => {
     setError(err)
   }
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
+  const handleSubmit = (type) => {
     setLoading(true)
-    getTwilioAccount({accountSid, authToken})
+    setAuthType(type)
+    getTwilioAccount({accountSid, authToken, apiKey, apiSecret, type})
   }
 
   const getTwilioAccount = useGetTwilioAccount({
@@ -51,9 +55,13 @@ const AuthenticationPage = () => {
     <AuthenticateForm
       accountSid={accountSid}
       authToken={authToken}
+      apiKey={apiKey}
+      apiSecret={apiSecret}
       loading={loading}
       onAccountSidChange={v => setAccountSid(v)}
       onAuthTokenChange={v => setAuthToken(v)}
+      onApiKeyChange={v => setApiKey(v)}
+      onApiSecretChange={v => setApiSecret(v)}
       onSubmit={handleSubmit} />
     <AccountDetails accountInfo={accountInfo}/>
   </DefaultLayout>

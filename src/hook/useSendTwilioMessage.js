@@ -1,5 +1,6 @@
 import axios from "axios";
 import {useAuthentication} from "../context/AuthenticationProvider";
+import {buildCredentials} from "./useGetTwilioAccount";
 
 const useSendTwilioMessage = ({ onSuccess = () => {},
                                 onError = () => {},
@@ -15,11 +16,9 @@ const useSendTwilioMessage = ({ onSuccess = () => {},
     data.append('Body', body)
 
     const url = `https://api.twilio.com/2010-04-01/Accounts/${authentication.accountSid}/Messages.json`
+    const credentials = buildCredentials(authentication)
     axios.post(url, data , {
-        auth: {
-          username: authentication.accountSid,
-          password: authentication.authToken
-        },
+        auth: credentials,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
